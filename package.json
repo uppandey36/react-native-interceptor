@@ -47,9 +47,18 @@
     "format": "prettier --write ."
   },
   "keywords": [
+    "react",
+    "native",
     "react-native",
+    "network",
+    "interceptor",
+    "http",
+    "monitor",
+    "logging",
     "ios",
-    "android"
+    "android",
+    "logger",
+    "console"
   ],
   "repository": {
     "type": "git",

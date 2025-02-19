@@ -115,7 +115,7 @@ export function IndividualLog(props: IIndividualLogComponent) {
 export function LogsList(props: LogsList) {
   const { onBackPress } = props;
   const styles = Styles(colors);
-  const logLists = useMemo(() => logger.logsList, []);
+  const logLists = useMemo(() => logger.getLogsList(), []);
 
   const [modalData, setModalData] = useState<{
     title: string;

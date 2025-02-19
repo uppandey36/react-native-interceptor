@@ -3,11 +3,11 @@
 import { IndividualLogs, LoggerTypes, ConfigureLogger } from '../types/logger';
 
 class Logger {
-  logsList: Array<IndividualLogs>;
-  logsLimit: number;
-  customLogFunction: ((...args: any) => void) | null;
-  customWarnFunction: ((...args: any) => void) | null;
-  customErrorFunction: ((...args: any) => void) | null;
+  private logsList: Array<IndividualLogs>;
+  private logsLimit: number;
+  private customLogFunction: ((...args: any) => void) | null;
+  private customWarnFunction: ((...args: any) => void) | null;
+  private customErrorFunction: ((...args: any) => void) | null;
 
   constructor() {
     this.logsList = [];
@@ -20,19 +20,19 @@ class Logger {
   private removeFirstEntry() {
     if (this.logsList.length < this.logsLimit) return;
     else {
-      this.logsList?.pop();
+      this.logsList?.shift();
       return;
     }
   }
 
-  private insertAtTop(indiLog: IndividualLogs) {
-    this.logsList?.unshift(indiLog);
+  private insertNewLog(indiLog: IndividualLogs) {
+    this.logsList?.push(indiLog);
   }
 
   log(markerText: string, ...args: any) {
     // adding info to logsList
     this.removeFirstEntry();
-    this.insertAtTop({
+    this.insertNewLog({
       type: LoggerTypes.LOG,
       markerText: markerText,
       values: args,
@@ -52,7 +52,7 @@ class Logger {
   warn(markerText: string, ...args: any) {
     // adding info to logsList
     this.removeFirstEntry();
-    this.insertAtTop({
+    this.insertNewLog({
       type: LoggerTypes.WARN,
       markerText: markerText,
       values: args,
@@ -72,7 +72,7 @@ class Logger {
   error(markerText: string, ...args: any) {
     // adding info to logsList
     this.removeFirstEntry();
-    this.insertAtTop({
+    this.insertNewLog({
       type: LoggerTypes.ERROR,
       markerText: markerText,
       values: args,
@@ -104,6 +104,10 @@ class Logger {
 
   clearList() {
     this.logsList = [];
+  }
+
+  getLogsList() {
+    return this.logsList;
   }
 }
 
