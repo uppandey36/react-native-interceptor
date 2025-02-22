@@ -103,23 +103,36 @@ function Newtork() {
   }
 
   return {
-    connect: () => {
+    connect: (configs?: ConfigureNetwork) => {
       XHRInterceptor.setSendCallback(onSend);
       XHRInterceptor.setResponseCallback(onResponse);
       XHRInterceptor.enableInterception();
+
+      if (configs) {
+        const {
+          errorStatusList = [400, 401],
+          ignoreContentTypesList = [],
+          ignoreUrlsList = [],
+          networksLimit = 500,
+        } = configs;
+        ignoreUrls = [...ignoreUrlsList];
+        limit = networksLimit;
+        errorStatus = [...errorStatusList];
+        ignoreContentTypes = [...ignoreContentTypesList];
+      }
     },
-    configure: (configs: ConfigureNetwork) => {
-      const {
-        errorStatusList = [400, 401],
-        ignoreContentTypesList = [],
-        ignoreUrlsList = [],
-        networksLimit = 500,
-      } = configs;
-      ignoreUrls = [...ignoreUrlsList];
-      limit = networksLimit;
-      errorStatus = [...errorStatusList];
-      ignoreContentTypes = [...ignoreContentTypesList];
-    },
+    // configure: (configs: ConfigureNetwork) => {
+    //   const {
+    //     errorStatusList = [400, 401],
+    //     ignoreContentTypesList = [],
+    //     ignoreUrlsList = [],
+    //     networksLimit = 500,
+    //   } = configs;
+    //   ignoreUrls = [...ignoreUrlsList];
+    //   limit = networksLimit;
+    //   errorStatus = [...errorStatusList];
+    //   ignoreContentTypes = [...ignoreContentTypesList];
+    // },
     disconnect: () => {
       XHRInterceptor.setSendCallback(nullFunction);
       XHRInterceptor.setResponseCallback(nullFunction);
@@ -128,8 +141,10 @@ function Newtork() {
       networkList = {};
       interceptorCounter = 0;
     },
-    getNetworkList: () => {
-      return networkList;
+    getNetworkList: (inverted = false) => {
+      return inverted
+        ? Object.values(networkList).reverse()
+        : Object.values(networkList);
     },
     getErrorStatues: () => {
       return errorStatus;

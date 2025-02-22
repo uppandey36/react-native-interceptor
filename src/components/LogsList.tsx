@@ -1,5 +1,6 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -26,6 +27,7 @@ if (Platform.OS === 'android') {
 
 export interface LogsList {
   onBackPress: () => void;
+  displayOrder?: 'FCFS' | 'LCFS';
 }
 
 export function IndividualLog(props: IIndividualLogComponent) {
@@ -113,9 +115,9 @@ export function IndividualLog(props: IIndividualLogComponent) {
 }
 
 export function LogsList(props: LogsList) {
-  const { onBackPress } = props;
+  const { onBackPress, displayOrder = 'FCFS' } = props;
   const styles = Styles(colors);
-  const logLists = useMemo(() => logger.getLogsList(), []);
+  const logLists = logger.getLogsList(displayOrder === 'LCFS');
 
   const [modalData, setModalData] = useState<{
     title: string;

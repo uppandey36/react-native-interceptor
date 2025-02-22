@@ -1,5 +1,6 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -27,6 +28,7 @@ if (Platform.OS === 'android') {
 
 export interface NetworkApis {
   onBackPress: () => void;
+  displayOrder?: 'FCFS' | 'LCFS';
 }
 
 export function IndividualApi(props: IIndividualApi) {
@@ -46,11 +48,11 @@ export function IndividualApi(props: IIndividualApi) {
   } = props;
   const [expanded, setExpand] = useState(false);
 
-  const isApiFailed = useMemo(() => {
+  const isApiFailed = () => {
     const errorStatues = network.getErrorStatues();
     return errorStatues.includes(status);
-  }, []);
-  const requestResponseInfoMap = useMemo(() => {
+  };
+  const requestResponseInfoMap = () => {
     return [
       {
         title: 'Request',
@@ -78,7 +80,7 @@ export function IndividualApi(props: IIndividualApi) {
         disable: Object.keys(responseHeaders || {}).length === 0,
       },
     ];
-  }, []);
+  };
   const onExpandClick = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpand((pre) => !pre);
@@ -120,7 +122,7 @@ export function IndividualApi(props: IIndividualApi) {
             numberOfLines={1}
             style={[
               styles.urlText,
-              isApiFailed ? { color: colors.errorText } : {},
+              isApiFailed() ? { color: colors.errorText } : {},
             ]}
           >
             {url}
@@ -141,7 +143,7 @@ export function IndividualApi(props: IIndividualApi) {
         <View
           style={[
             styles.expandContainer,
-            isApiFailed ? { backgroundColor: colors.errorBackground } : {},
+            isApiFailed() ? { backgroundColor: colors.errorBackground } : {},
           ]}
         >
           <View style={[styles.flexRow, styles.keyValueContainer]}>
@@ -171,36 +173,38 @@ export function IndividualApi(props: IIndividualApi) {
             </Text>
           </View>
           <View style={[styles.flexRow, styles.flexWrap]}>
-            {requestResponseInfoMap?.map(({ data, disable, title }, index) => {
-              return (
-                <Pressable
-                  key={index}
-                  style={[
-                    styles.itemCenter,
-                    styles.infoButton,
-                    disable
-                      ? {
-                          backgroundColor: colors.buttonDisable,
-                        }
-                      : {},
-                  ]}
-                  onPress={() => (disable ? null : onInfoButtonClick(data))}
-                >
-                  <Text
+            {requestResponseInfoMap()?.map(
+              ({ data, disable, title }, index) => {
+                return (
+                  <Pressable
+                    key={index}
                     style={[
-                      styles.infoButtonText,
+                      styles.itemCenter,
+                      styles.infoButton,
                       disable
                         ? {
-                            color: colors.secondaryText,
+                            backgroundColor: colors.buttonDisable,
                           }
                         : {},
                     ]}
+                    onPress={() => (disable ? null : onInfoButtonClick(data))}
                   >
-                    {title || ''}
-                  </Text>
-                </Pressable>
-              );
-            })}
+                    <Text
+                      style={[
+                        styles.infoButtonText,
+                        disable
+                          ? {
+                              color: colors.secondaryText,
+                            }
+                          : {},
+                      ]}
+                    >
+                      {title || ''}
+                    </Text>
+                  </Pressable>
+                );
+              }
+            )}
           </View>
           <View style={styles.itemCenter}>
             <Pressable onPress={generateAndShareCurl} style={styles.hyperLink}>
@@ -214,9 +218,9 @@ export function IndividualApi(props: IIndividualApi) {
 }
 
 export function NetworkApis(props: NetworkApis) {
-  const { onBackPress } = props;
+  const { onBackPress, displayOrder = 'FCFS' } = props;
   const styles = Styles(colors);
-  const apisList = useMemo(() => network.getNetworkList(), []);
+  const apisList = network.getNetworkList(displayOrder === 'LCFS');
 
   const [modalData, setModalData] = useState<{
     title: string;
@@ -225,10 +229,7 @@ export function NetworkApis(props: NetworkApis) {
   const [showModal, setShowModal] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
   const [areLogsClear, setAreLogsClear] = useState(false);
-  const [searchedApis, setSearchedApis] = useState<Record<
-    string,
-    INetworkApis
-  > | null>(null);
+  const [searchedApis, setSearchedApis] = useState<INetworkApis[] | null>(null);
 
   const onInfoButtonClick = useCallback((data: Record<string, unknown>) => {
     setModalData({ title: 'Copy', info: data });
@@ -244,12 +245,9 @@ export function NetworkApis(props: NetworkApis) {
 
   const searchByUrl = useCallback((text?: string) => {
     if (text) {
-      const filteredData: Record<string, INetworkApis> = {};
-      for (const [key, value] of Object.entries(apisList)) {
-        if (value?.url?.toLowerCase()?.includes(text)) {
-          filteredData[key] = value;
-        }
-      }
+      const filteredData = apisList.filter((item) =>
+        item.url?.toLowerCase()?.includes(text)
+      );
       setSearchedApis(filteredData);
     } else {
       setSearchedApis(null);
@@ -295,12 +293,13 @@ export function NetworkApis(props: NetworkApis) {
       </View>
       <Search placeholder="Search by url" searchFunction={searchByUrl} />
       <FlatList
-        data={Object.values(areLogsClear ? {} : (searchedApis ?? apisList))}
+        data={areLogsClear ? [] : (searchedApis ?? apisList)}
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => (
           <IndividualApi {...item} onInfoButtonClick={onInfoButtonClick} />
         )}
         contentContainerStyle={styles.listContainer}
+        keyExtractor={(item) => item.xhr._trackingName.toString()}
       />
       <CustomModal
         onCopyClick={onCopyText}

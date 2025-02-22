@@ -106,8 +106,8 @@ class Logger {
     this.logsList = [];
   }
 
-  getLogsList() {
-    return this.logsList;
+  getLogsList(inverted = false) {
+    return inverted ? this.logsList.reverse() : this.logsList;
   }
 }
 

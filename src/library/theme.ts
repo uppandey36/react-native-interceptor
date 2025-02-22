@@ -1,8 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { ColorSchemeName, useColorScheme } from 'react-native';
+import { ColorSchemeName, Appearance } from 'react-native';
 import { ColorMap } from '../types/theme';
 
-const colorScheme: ColorSchemeName = useColorScheme() || 'light';
+// const colorScheme: ColorSchemeName = useColorScheme() || 'light';
+const colorScheme: ColorSchemeName = Appearance.getColorScheme() ?? 'light';
 
 const light: ColorMap = {
   primary: '#FFF',

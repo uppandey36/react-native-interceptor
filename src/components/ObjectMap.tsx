@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useMemo, useCallback, memo } from 'react';
+import { useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -44,7 +44,7 @@ export default function ObjectMap(props: {
 }) {
   const { obj, tabCount = 0, parentKey = '', extended = true } = props;
   const styles = Styles(theme.light);
-  const isarray = useMemo(() => Array.isArray(obj), []);
+  const isarray = Array.isArray(obj);
   const [isExpanded, setExpande] = useState(extended);
 
   const onScalePress = useCallback(() => {

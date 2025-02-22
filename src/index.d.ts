@@ -12,15 +12,17 @@ import {
 
 interface NetworkApisProps {
   onBackPress: () => void;
+  displayOrder?: 'FCFS' | 'LCFS';
 }
 
 interface LogsListProps {
   onBackPress: () => void;
+  displayOrder?: 'FCFS' | 'LCFS';
 }
 
 interface networkType {
-  connect: () => void;
-  configure: (configs: ConfigureNetwork) => void;
+  connect: (configs?: ConfigureNetwork) => void;
+  // configure: (configs: ConfigureNetwork) => void;
   disconnect: () => void;
   clearList: () => void;
   getNetworkList: () => Record<string, INetworkApis>;
