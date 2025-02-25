@@ -1,4 +1,4 @@
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { Platform, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import {
   horizontalScale,
   verticalScale,
@@ -69,6 +69,7 @@ export const Styles = (colors: ColorMap) =>
       height: horizontalScale(36),
       backgroundColor: colors.secondary,
       borderRadius: moderateScale(18),
+      paddingTop: verticalScale(Platform.OS === 'ios' ? 6 : 0),
     },
     pressableText: {
       color: colors.commonText,

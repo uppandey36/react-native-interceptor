@@ -1,5 +1,12 @@
 import { memo, useState } from 'react';
-import { TextInput, StyleSheet, View, Text, Pressable } from 'react-native';
+import {
+  TextInput,
+  StyleSheet,
+  View,
+  Text,
+  Pressable,
+  Platform,
+} from 'react-native';
 import { colors } from '../library/theme';
 import {
   horizontalScale,
@@ -47,7 +54,7 @@ function Search(props: Search) {
             searchText
               ? {
                   fontSize: moderateScale(20),
-                  marginTop: verticalScale(8),
+                  marginTop: verticalScale(Platform.OS === 'android' ? 8 : 14),
                 }
               : {},
           ]}
@@ -76,6 +83,7 @@ const Styles = (colors: ColorMap) =>
       fontSize: moderateScale(30),
       color: colors.primary,
       fontFamily: 'monospace',
+      marginTop: verticalScale(Platform.OS === 'ios' ? 6 : 0),
     },
     textInput: {
       width: '85%',

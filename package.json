@@ -1,6 +1,6 @@
 {
-  "name": "rn-interceptor",
-  "version": "0.1.0",
+  "name": "react-native-interceptor",
+  "version": "1.0.0",
   "description": "React native network calls and logs list to reduce debugging and blocking time",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -38,7 +38,6 @@
     "!**/.*"
   ],
   "scripts": {
-    "example": "yarn workspace rn-interceptor-example",
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
@@ -63,14 +62,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uppandey36/rn-interceptor.git"
+    "url": "git+https://github.com/uppandey36/react-native-interceptor.git"
   },
   "author": "Upendra Pandey <upendra03pandey@gmail.com> (https://github.com/uppandey36)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/uppandey36/rn-interceptor/issues"
+    "url": "https://github.com/uppandey36/react-native-interceptor/issues"
   },
-  "homepage": "https://github.com/uppandey36/rn-interceptor#readme",
+  "homepage": "https://github.com/uppandey36/react-native-interceptor#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

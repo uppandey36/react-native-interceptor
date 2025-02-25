@@ -9,9 +9,9 @@ export type AvailableLoggerType = keyof typeof LoggerTypes;
 
 export interface ConfigureLogger {
   logsLimit?: number;
-  customLogFunction?: ((...args: any) => void) | null;
-  customWarnFunction?: ((...args: any) => void) | null;
-  customErrorFunction?: ((...args: any) => void) | null;
+  customLogFunction?: ((markerText: string, ...args: any) => void) | null;
+  customWarnFunction?: ((markerText: string, ...args: any) => void) | null;
+  customErrorFunction?: ((markerText: string, ...args: any) => void) | null;
 }
 
 export interface IndividualLogs {

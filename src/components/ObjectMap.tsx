@@ -10,7 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { verticalScale, horizontalScale } from '../library/commons';
-import { theme } from '../library/theme';
+import { colors } from '../library/theme';
 import { ColorMap } from '../types/theme';
 
 if (Platform.OS === 'android') {
@@ -28,7 +28,7 @@ const ScaleUpDown = memo(function ScaleUpDown({
   buttonText: string;
   onPress: () => void;
 }) {
-  const styles = Styles(theme.light);
+  const styles = Styles(colors);
   return (
     <Pressable onPress={onPress} style={styles.scaleStyle}>
       <Text style={[styles.fontBold, styles.textColor]}>{buttonText}</Text>
@@ -43,7 +43,7 @@ export default function ObjectMap(props: {
   obj: string | boolean | number | Record<string, unknown> | unknown[];
 }) {
   const { obj, tabCount = 0, parentKey = '', extended = true } = props;
-  const styles = Styles(theme.light);
+  const styles = Styles(colors);
   const isarray = Array.isArray(obj);
   const [isExpanded, setExpande] = useState(extended);
 

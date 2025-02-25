@@ -98,6 +98,7 @@ const Style = (colors: ColorMap) =>
       borderTopLeftRadius: moderateScale(16),
       borderTopRightRadius: moderateScale(16),
       maxHeight: verticalScale(600),
+      paddingBottom: verticalScale(12),
     },
     overlayInfoContainer: {
       borderRadius: moderateScale(12),
