@@ -100,7 +100,7 @@ This logger has 3 functions <b>log</b>, <b>warn</b> and <b>error</b> which works
 Call `logger.configure()` in your apps entry point if there are props to provide.
 
 ```ts
-import { logger } from "rn-interceptor";
+import { logger } from "react-native-interceptor";
 
 logger.configure({
   customErrorFunction: (markerText, ...args) => {
@@ -127,19 +127,19 @@ logger.configure({
 
 ##### LOG function
 ```ts
-import { logger } from "rn-interceptor";
+import { logger } from "react-native-interceptor";
 
 logger.log("any marker text", arg1, arg2,....)
 ```
 ##### WARN function
 ```ts
-import { logger } from "rn-interceptor";
+import { logger } from "react-native-interceptor";
 
 logger.warn("any marker text", arg1, arg2,....)
 ```
 ##### ERROR function
 ```ts
-import { logger } from "rn-interceptor";
+import { logger } from "react-native-interceptor";
 
 logger.error("any marker text", arg1, arg2,....)
 ```
