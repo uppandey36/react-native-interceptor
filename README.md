@@ -1,4 +1,4 @@
-# react-native-network-logger
+# react-native-interceptor
 
 An HTTP/HTTPS traffic monitor and Consoles log, warn and error monitor for React Native including in app interface.
 
