@@ -2,7 +2,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "paths": {
-      "rn-interceptor": ["./src/index"]
+      "react-native-interceptor": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
