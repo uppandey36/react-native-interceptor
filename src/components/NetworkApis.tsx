@@ -1,5 +1,4 @@
 /* eslint-disable react-native/no-inline-styles */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useState } from 'react';
 import {
   View,
@@ -11,10 +10,11 @@ import {
   Platform,
   ScrollView,
   Share,
+  ListRenderItem,
 } from 'react-native';
 import { network } from '..';
 import { colors, MethodColorMap } from '../library/theme';
-import { generateCurlCommand } from '../library/commons';
+import { generateCurlCommand, isTablet } from '../library/commons';
 import { IIndividualApi, INetworkApis } from '../types/network';
 import ObjectMap from './ObjectMap';
 import CustomModal from './CustomModal';
@@ -29,6 +29,25 @@ if (Platform.OS === 'android') {
 export interface NetworkApis {
   onBackPress: () => void;
   displayOrder?: 'FCFS' | 'LCFS';
+}
+
+function DetailRow({
+  label,
+  value,
+  styles,
+}: {
+  label: string;
+  value: string | number;
+  styles: ReturnType<typeof Styles>;
+}) {
+  return (
+    <View style={styles.keyValueRow}>
+      <Text style={styles.expandedLabel}>{label}</Text>
+      <Text selectable style={styles.expandedValue}>
+        {value}
+      </Text>
+    </View>
+  );
 }
 
 export function IndividualApi(props: IIndividualApi) {
@@ -52,35 +71,35 @@ export function IndividualApi(props: IIndividualApi) {
     const errorStatues = network.getErrorStatues();
     return errorStatues.includes(status);
   };
-  const requestResponseInfoMap = () => {
-    return [
-      {
-        title: 'Request',
-        data: requestBody,
-        disable: Object.keys(requestBody || {}).length === 0,
-      },
-      {
-        title: 'Request Header',
-        data: requestHeaders,
-        disable: Object.keys(requestHeaders || {}).length === 0,
-      },
-      {
-        title: 'Params',
-        data: params,
-        disable: Object.keys(params || {}).length === 0,
-      },
-      {
-        title: 'Response',
-        data: response,
-        disable: Object.keys(response || {}).length === 0,
-      },
-      {
-        title: 'Response Header',
-        data: responseHeaders,
-        disable: Object.keys(responseHeaders || {}).length === 0,
-      },
-    ];
-  };
+
+  const requestResponseInfoMap = () => [
+    {
+      title: 'Request',
+      data: requestBody,
+      disable: Object.keys(requestBody || {}).length === 0,
+    },
+    {
+      title: 'Request Header',
+      data: requestHeaders,
+      disable: Object.keys(requestHeaders || {}).length === 0,
+    },
+    {
+      title: 'Params',
+      data: params,
+      disable: Object.keys(params || {}).length === 0,
+    },
+    {
+      title: 'Response',
+      data: response,
+      disable: Object.keys(response || {}).length === 0,
+    },
+    {
+      title: 'Response Header',
+      data: responseHeaders,
+      disable: Object.keys(responseHeaders || {}).length === 0,
+    },
+  ];
+
   const onExpandClick = useCallback(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpand((pre) => !pre);
@@ -94,24 +113,26 @@ export function IndividualApi(props: IIndividualApi) {
       body: requestBody,
     });
     try {
-      await Share.share({
-        message: cURL,
-      });
-    } catch (e) {}
-  }, []);
+      await Share.share({ message: cURL });
+    } catch {}
+  }, [method, url, requestHeaders, requestBody]);
+
+  const failed = isApiFailed();
 
   return (
     <View style={styles.individualContainer}>
       <Pressable
         onPress={onExpandClick}
         style={[styles.individualInfoContainer, styles.flexRow]}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        accessibilityLabel={`${method} request to ${url}`}
       >
-        <View style={[styles.flexRow, styles.itemCenter]}>
+        <View style={styles.rowContent}>
           <View style={[styles.methodInfo, styles.itemCenter]}>
             <Text
               style={[
                 styles.methodText,
-                styles.fontBold,
                 { color: MethodColorMap[method || 'GET'] },
               ]}
             >
@@ -119,11 +140,8 @@ export function IndividualApi(props: IIndividualApi) {
             </Text>
           </View>
           <Text
-            numberOfLines={1}
-            style={[
-              styles.urlText,
-              isApiFailed() ? { color: colors.errorText } : {},
-            ]}
+            numberOfLines={2}
+            style={[styles.urlText, failed && { color: colors.errorText }]}
           >
             {url}
           </Text>
@@ -131,9 +149,7 @@ export function IndividualApi(props: IIndividualApi) {
         <Text
           style={[
             styles.carretIcon,
-            {
-              transform: [{ rotate: !expanded ? '90deg' : '270deg' }],
-            },
+            { transform: [{ rotate: expanded ? '270deg' : '90deg' }] },
           ]}
         >
           {'\u25B6'}
@@ -143,71 +159,49 @@ export function IndividualApi(props: IIndividualApi) {
         <View
           style={[
             styles.expandContainer,
-            isApiFailed() ? { backgroundColor: colors.errorBackground } : {},
+            failed && styles.expandContainerError,
           ]}
         >
-          <View style={[styles.flexRow, styles.keyValueContainer]}>
-            <View>
-              <Text style={[styles.fontBold, styles.expandedInfoText]}>
-                Url :{' '}
-              </Text>
-            </View>
-            <Text style={[styles.expandedInfoText]}>{url}</Text>
-          </View>
-          <View style={[styles.flexRow, styles.keyValueContainer]}>
-            <View>
-              <Text style={[styles.fontBold, styles.expandedInfoText]}>
-                Status :{' '}
-              </Text>
-            </View>
-            <Text style={[styles.expandedInfoText]}>{status}</Text>
-          </View>
-          <View style={[styles.flexRow, styles.keyValueContainer]}>
-            <View>
-              <Text style={[styles.fontBold, styles.expandedInfoText]}>
-                Time :{' '}
-              </Text>
-            </View>
-            <Text style={[styles.expandedInfoText]}>
-              {stopTime ? `${stopTime - startTime}ms` : 'Pending...'}
-            </Text>
-          </View>
+          <DetailRow label="URL" value={url} styles={styles} />
+          <DetailRow label="Status" value={status} styles={styles} />
+          <DetailRow
+            label="Time"
+            value={stopTime ? `${stopTime - startTime}ms` : 'Pending...'}
+            styles={styles}
+          />
           <View style={[styles.flexRow, styles.flexWrap]}>
-            {requestResponseInfoMap()?.map(
-              ({ data, disable, title }, index) => {
-                return (
-                  <Pressable
-                    key={index}
-                    style={[
-                      styles.itemCenter,
-                      styles.infoButton,
-                      disable
-                        ? {
-                            backgroundColor: colors.buttonDisable,
-                          }
-                        : {},
-                    ]}
-                    onPress={() => (disable ? null : onInfoButtonClick(data))}
-                  >
-                    <Text
-                      style={[
-                        styles.infoButtonText,
-                        disable
-                          ? {
-                              color: colors.secondaryText,
-                            }
-                          : {},
-                      ]}
-                    >
-                      {title || ''}
-                    </Text>
-                  </Pressable>
-                );
-              }
-            )}
+            {requestResponseInfoMap().map(({ data, disable, title }, index) => (
+              <Pressable
+                key={index}
+                style={[
+                  styles.itemCenter,
+                  styles.infoButton,
+                  disable && { backgroundColor: colors.buttonDisable },
+                ]}
+                onPress={() => (disable ? undefined : onInfoButtonClick(data))}
+                disabled={disable}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${title}`}
+                accessibilityState={{ disabled: disable }}
+              >
+                <Text
+                  style={[
+                    styles.infoButtonText,
+                    disable && { color: colors.secondaryText },
+                  ]}
+                >
+                  {title}
+                </Text>
+              </Pressable>
+            ))}
           </View>
           <View style={styles.itemCenter}>
-            <Pressable onPress={generateAndShareCurl} style={styles.hyperLink}>
+            <Pressable
+              onPress={generateAndShareCurl}
+              style={styles.hyperLink}
+              accessibilityRole="button"
+              accessibilityLabel="Copy curl command"
+            >
               <Text style={styles.hyperText}>Copy curl</Text>
             </Pressable>
           </View>
@@ -231,28 +225,29 @@ export function NetworkApis(props: NetworkApis) {
   const [areLogsClear, setAreLogsClear] = useState(false);
   const [searchedApis, setSearchedApis] = useState<INetworkApis[] | null>(null);
 
+  const listData = areLogsClear ? [] : (searchedApis ?? apisList);
+
   const onInfoButtonClick = useCallback((data: Record<string, unknown>) => {
     setModalData({ title: 'Copy', info: data });
     setShowModal(true);
   }, []);
 
   const onCopyText = useCallback(() => {
-    const data = JSON.stringify(modalData?.info || '');
-    Share.share({
-      message: data,
-    });
+    Share.share({ message: JSON.stringify(modalData?.info || '') });
   }, [modalData.info]);
 
-  const searchByUrl = useCallback((text?: string) => {
-    if (text) {
-      const filteredData = apisList.filter((item) =>
-        item.url?.toLowerCase()?.includes(text)
-      );
-      setSearchedApis(filteredData);
-    } else {
-      setSearchedApis(null);
-    }
-  }, []);
+  const searchByUrl = useCallback(
+    (text?: string) => {
+      if (text) {
+        setSearchedApis(
+          apisList.filter((item) => item.url?.toLowerCase()?.includes(text))
+        );
+      } else {
+        setSearchedApis(null);
+      }
+    },
+    [apisList]
+  );
 
   const onModalClose = useCallback(() => {
     setModalData({ title: '', info: {} });
@@ -264,7 +259,14 @@ export function NetworkApis(props: NetworkApis) {
     network.clearList();
     setAreLogsClear(true);
     onModalClose();
-  }, []);
+  }, [onModalClose]);
+
+  const renderItem: ListRenderItem<INetworkApis> = useCallback(
+    ({ item }) => (
+      <IndividualApi {...item} onInfoButtonClick={onInfoButtonClick} />
+    ),
+    [onInfoButtonClick]
+  );
 
   return (
     <View style={styles.parentContainer}>
@@ -272,34 +274,40 @@ export function NetworkApis(props: NetworkApis) {
         <Pressable
           onPress={onBackPress}
           style={[styles.headerPressable, styles.itemCenter]}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <Text style={[styles.pressableText, styles.fontBold]}>
             {'\u25C0'}
           </Text>
         </Pressable>
-        <View>
-          <Text style={[styles.title, styles.fontBold]}>Network</Text>
-        </View>
+        <Text style={[styles.title, styles.fontBold]} accessibilityRole="header">
+          Network
+        </Text>
         <Pressable
           onPress={() => setShowOverlay(true)}
           style={[styles.headerPressable, styles.itemCenter]}
+          accessibilityRole="button"
+          accessibilityLabel="Open menu"
         >
-          <Text
-            style={[styles.pressableText, styles.fontBold, styles.marginHor4]}
-          >
-            {'\u22EE'}
-          </Text>
+          <Text style={[styles.pressableText, styles.fontBold]}>{'\u22EE'}</Text>
         </Pressable>
       </View>
-      <Search placeholder="Search by url" searchFunction={searchByUrl} />
+      <Search placeholder="Search by URL" searchFunction={searchByUrl} />
       <FlatList
-        data={areLogsClear ? [] : (searchedApis ?? apisList)}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <IndividualApi {...item} onInfoButtonClick={onInfoButtonClick} />
-        )}
-        contentContainerStyle={styles.listContainer}
+        data={listData}
+        showsVerticalScrollIndicator={false}
+        renderItem={renderItem}
+        contentContainerStyle={[
+          styles.listContainer,
+          isTablet && { alignSelf: 'center', width: '100%', maxWidth: 720 },
+        ]}
         keyExtractor={(item) => item.xhr._trackingName.toString()}
+        ListEmptyComponent={
+          <View style={styles.emptyList}>
+            <Text style={styles.emptyListText}>No network requests captured</Text>
+          </View>
+        }
       />
       <CustomModal
         onCopyClick={onCopyText}
@@ -308,14 +316,12 @@ export function NetworkApis(props: NetworkApis) {
         onClose={onModalClose}
         title={modalData.title}
       >
-        <ScrollView contentContainerStyle={{ marginHorizontal: 16 }}>
-          <ScrollView
-            showsHorizontalScrollIndicator={false}
-            horizontal
-            contentContainerStyle={{ width: '130%' }}
-          >
-            <ObjectMap obj={modalData.info} />
-          </ScrollView>
+        <ScrollView
+          style={{ backgroundColor: colors.codeBackground }}
+          contentContainerStyle={{ padding: 16 }}
+          nestedScrollEnabled
+        >
+          <ObjectMap obj={modalData.info} />
         </ScrollView>
       </CustomModal>
       <CustomModal
@@ -323,11 +329,14 @@ export function NetworkApis(props: NetworkApis) {
         onClose={onModalClose}
         modalType="overlay"
       >
-        <View style={{ alignItems: 'center' }}>
-          <Pressable onPress={clearAllLogs} style={styles.hyperLink}>
-            <Text style={styles.hyperText}>Clear All</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          onPress={clearAllLogs}
+          style={styles.hyperLink}
+          accessibilityRole="button"
+          accessibilityLabel="Clear all network requests"
+        >
+          <Text style={styles.hyperText}>Clear All</Text>
+        </Pressable>
       </CustomModal>
     </View>
   );

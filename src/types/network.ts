@@ -1,12 +1,4 @@
-enum Methods {
-  GET = 'GET',
-  POST = 'POST',
-  PATCH = 'PATCH',
-  PUT = 'PUT',
-  DELETE = 'DELETE',
-}
-
-export type AvailableMethods = keyof typeof Methods;
+export type AvailableMethods = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 export interface ConfigureNetwork {
   networksLimit?: number;

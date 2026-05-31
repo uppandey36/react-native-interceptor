@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export enum LoggerTypes {
   LOG = 'LOG',
   WARN = 'WARN',

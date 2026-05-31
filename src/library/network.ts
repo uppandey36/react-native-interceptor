@@ -1,14 +1,70 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import XHRInterceptor from 'react-native/Libraries/Network/XHRInterceptor';
+import XMLHttpRequest from 'react-native/Libraries/Network/XMLHttpRequest';
 import {
   IndividualApiInfo,
   INetworkApis,
   ConfigureNetwork,
 } from '../types/network';
 
-const nullFunction = (_callback: Function) => {};
+type SendCallback = (data: any, xhr: IndividualApiInfo) => void;
+type ResponseCallback = (
+  status: number,
+  timeout: boolean,
+  response: any,
+  url: string,
+  type: string,
+  xhr: IndividualApiInfo
+) => void;
 
-function Newtork() {
+const originalSend = XMLHttpRequest.prototype.send;
+
+let sendCallback: SendCallback | null = null;
+let responseCallback: ResponseCallback | null = null;
+let isInterceptorEnabled = false;
+
+function asApiInfo(xhr: XMLHttpRequest): IndividualApiInfo {
+  return xhr as unknown as IndividualApiInfo;
+}
+
+function enableInterception() {
+  if (isInterceptorEnabled) {
+    return;
+  }
+
+  XMLHttpRequest.prototype.send = function (data: any) {
+    if (sendCallback) {
+      sendCallback(data, asApiInfo(this));
+    }
+
+    if (this.addEventListener) {
+      this.addEventListener(
+        'readystatechange',
+        () => {
+          if (!isInterceptorEnabled) {
+            return;
+          }
+
+          if (this.readyState === this.DONE && responseCallback) {
+            responseCallback(
+              this.status,
+              !!this._timedOut,
+              this.response,
+              this.responseURL || this._url || '',
+              this.responseType,
+              asApiInfo(this)
+            );
+          }
+        },
+        false
+      );
+    }
+
+    originalSend.apply(this, arguments as any);
+  };
+
+  isInterceptorEnabled = true;
+}
+
+function Network() {
   let networkList: Record<string, INetworkApis> = {};
   let interceptorCounter: number = 0;
   let ignoreUrls: RegExp[] = [];
@@ -31,7 +87,7 @@ function Newtork() {
         const removeId = interceptorCounter - limit;
         delete networkList[removeId];
       }
-    } catch (e) {}
+    } catch {}
 
     networkList[interceptorCounter] = {
       requestBody: typeof data === 'string' ? JSON.parse(data) : data,
@@ -68,7 +124,6 @@ function Newtork() {
     const params: Record<string, string> = {};
     const queryParamIdx = url ? url.indexOf('?') : -1;
     if (queryParamIdx > -1) {
-      // params = {};
       url
         .slice(queryParamIdx + 1)
         .split('&')
@@ -104,9 +159,9 @@ function Newtork() {
 
   return {
     connect: (configs?: ConfigureNetwork) => {
-      XHRInterceptor.setSendCallback(onSend);
-      XHRInterceptor.setResponseCallback(onResponse);
-      XHRInterceptor.enableInterception();
+      sendCallback = onSend;
+      responseCallback = onResponse;
+      enableInterception();
 
       if (configs) {
         const {
@@ -121,21 +176,9 @@ function Newtork() {
         ignoreContentTypes = [...ignoreContentTypesList];
       }
     },
-    // configure: (configs: ConfigureNetwork) => {
-    //   const {
-    //     errorStatusList = [400, 401],
-    //     ignoreContentTypesList = [],
-    //     ignoreUrlsList = [],
-    //     networksLimit = 500,
-    //   } = configs;
-    //   ignoreUrls = [...ignoreUrlsList];
-    //   limit = networksLimit;
-    //   errorStatus = [...errorStatusList];
-    //   ignoreContentTypes = [...ignoreContentTypesList];
-    // },
     disconnect: () => {
-      XHRInterceptor.setSendCallback(nullFunction);
-      XHRInterceptor.setResponseCallback(nullFunction);
+      sendCallback = null;
+      responseCallback = null;
     },
     clearList: () => {
       networkList = {};
@@ -152,4 +195,4 @@ function Newtork() {
   };
 }
 
-export const network = Newtork();
+export const network = Network();

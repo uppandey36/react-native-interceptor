@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useCallback, memo } from 'react';
 import {
   View,
@@ -9,7 +8,14 @@ import {
   LayoutAnimation,
   StyleSheet,
 } from 'react-native';
-import { verticalScale, horizontalScale } from '../library/commons';
+import {
+  verticalScale,
+  horizontalScale,
+  moderateScale,
+  scaleFont,
+  MONOSPACE_FONT,
+  TOUCH_TARGET_MIN,
+} from '../library/commons';
 import { colors } from '../library/theme';
 import { ColorMap } from '../types/theme';
 
@@ -18,19 +24,26 @@ if (Platform.OS === 'android') {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const tabSpacesHorizontal = '    ';
-const tabHeightVertical = 5;
+const tabHeightVertical = 6;
 
 const ScaleUpDown = memo(function ScaleUpDown({
   buttonText,
   onPress,
+  accessibilityLabel,
 }: {
   buttonText: string;
   onPress: () => void;
+  accessibilityLabel: string;
 }) {
   const styles = Styles(colors);
   return (
-    <Pressable onPress={onPress} style={styles.scaleStyle}>
+    <Pressable
+      onPress={onPress}
+      style={styles.scaleStyle}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      hitSlop={6}
+    >
       <Text style={[styles.fontBold, styles.textColor]}>{buttonText}</Text>
     </Pressable>
   );
@@ -45,89 +58,97 @@ export default function ObjectMap(props: {
   const { obj, tabCount = 0, parentKey = '', extended = true } = props;
   const styles = Styles(colors);
   const isarray = Array.isArray(obj);
-  const [isExpanded, setExpande] = useState(extended);
+  const [isExpanded, setExpanded] = useState(extended);
+  const indent = tabCount * horizontalScale(12);
 
   const onScalePress = useCallback(() => {
-    setExpande((pre) => !pre);
+    setExpanded((pre) => !pre);
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, []);
 
   if (['string', 'boolean', 'number'].includes(typeof obj))
     return (
-      <View style={styles.infoMargin}>
-        <Text style={[styles.textColor]}>{obj.toString()}</Text>
+      <View style={[styles.infoMargin, { paddingLeft: indent }]}>
+        <Text selectable style={[styles.textColor, styles.primitiveText]}>
+          {obj.toString()}
+        </Text>
       </View>
     );
-  else
-    return isExpanded ? (
-      <View>
-        <View style={[styles.flexRow, styles.infoMargin]}>
-          <Text>{`${tabSpacesHorizontal.repeat(tabCount)}`}</Text>
-          {parentKey && <ScaleUpDown buttonText={'-'} onPress={onScalePress} />}
-          {parentKey && (
-            <Text
-              style={[styles.fontBold, styles.textColor]}
-            >{`${parentKey}: `}</Text>
-          )}
-          <Text style={styles.zoneIndicatorColor}>{`${
-            isarray ? '[' : '{'
-          }`}</Text>
-        </View>
-        {Object.entries(obj).map(([key, value]) => {
-          if (typeof value === 'object' && value !== null)
-            return (
-              <ObjectMap
-                key={key}
-                obj={value as Record<string, unknown> | unknown[]}
-                tabCount={tabCount + 1}
-                parentKey={key}
-                extended={false}
-              />
-            );
-          else
-            return (
-              <View
-                key={key}
-                style={[styles.flexRow, styles.infoMargin, styles.alignStart]}
-              >
-                <Text
-                  style={[styles.fontBold, styles.textColor]}
-                >{`${tabSpacesHorizontal.repeat(tabCount + 1)}${key}: `}</Text>
-                <View style={{ maxWidth: '70%' }}>
-                  <Text style={styles.textColor}>{value as string}</Text>
-                </View>
-              </View>
-            );
-        })}
-        <Text
-          style={[styles.zoneIndicatorColor, styles.infoMargin]}
-        >{`${tabSpacesHorizontal.repeat(tabCount)}${
-          isarray ? ']' : '}'
-        }`}</Text>
-      </View>
-    ) : (
-      <View style={[styles.flexRow, styles.infoMargin]}>
-        <Text>{`${tabSpacesHorizontal.repeat(tabCount)}`}</Text>
-        <ScaleUpDown buttonText={'+'} onPress={onScalePress} />
-        <View style={styles.flexRow}>
+
+  return isExpanded ? (
+    <View style={{ paddingLeft: indent }}>
+      <View style={[styles.flexRow, styles.infoMargin, styles.alignStart]}>
+        {parentKey ? (
+          <ScaleUpDown
+            buttonText="-"
+            onPress={onScalePress}
+            accessibilityLabel={`Collapse ${parentKey}`}
+          />
+        ) : null}
+        {parentKey ? (
           <Text
-            style={[styles.fontBold, styles.textColor]}
+            style={[styles.fontBold, styles.keyText]}
           >{`${parentKey}: `}</Text>
-          <Text style={styles.zoneIndicatorColor}>{`${
-            isarray ? '[...]' : '{...}'
-          }`}</Text>
-        </View>
+        ) : null}
+        <Text style={styles.zoneIndicatorColor}>{isarray ? '[' : '{'}</Text>
       </View>
-    );
+      {Object.entries(obj).map(([key, value]) => {
+        if (typeof value === 'object' && value !== null)
+          return (
+            <ObjectMap
+              key={key}
+              obj={value as Record<string, unknown> | unknown[]}
+              tabCount={tabCount + 1}
+              parentKey={key}
+              extended={false}
+            />
+          );
+
+        return (
+          <View
+            key={key}
+            style={[styles.flexRow, styles.infoMargin, styles.alignStart]}
+          >
+            <Text style={[styles.fontBold, styles.keyText]}>{`${key}: `}</Text>
+            <Text selectable style={[styles.textColor, styles.valueText]}>
+              {String(value)}
+            </Text>
+          </View>
+        );
+      })}
+      <Text style={[styles.zoneIndicatorColor, styles.infoMargin]}>
+        {isarray ? ']' : '}'}
+      </Text>
+    </View>
+  ) : (
+    <View style={[styles.flexRow, styles.infoMargin, { paddingLeft: indent }]}>
+      <ScaleUpDown
+        buttonText="+"
+        onPress={onScalePress}
+        accessibilityLabel={`Expand ${parentKey}`}
+      />
+      <View style={[styles.flexRow, styles.flex1]}>
+        <Text
+          style={[styles.fontBold, styles.keyText]}
+        >{`${parentKey}: `}</Text>
+        <Text style={styles.zoneIndicatorColor}>
+          {isarray ? '[...]' : '{...}'}
+        </Text>
+      </View>
+    </View>
+  );
 }
 
-const Styles = (colors: ColorMap) =>
+const Styles = (color: ColorMap) =>
   StyleSheet.create({
     flexRow: {
       flexDirection: 'row',
     },
+    flex1: {
+      flex: 1,
+    },
     fontBold: {
-      fontWeight: 'bold',
+      fontWeight: '600',
     },
     infoMargin: {
       marginBottom: verticalScale(tabHeightVertical),
@@ -136,14 +157,38 @@ const Styles = (colors: ColorMap) =>
       alignItems: 'flex-start',
     },
     textColor: {
-      color: colors.secondary,
+      color: color.codeText,
+      fontFamily: MONOSPACE_FONT,
+      fontSize: scaleFont(13),
+      lineHeight: scaleFont(20),
+    },
+    primitiveText: {
+      flexShrink: 1,
+    },
+    keyText: {
+      color: color.codeKey,
+      fontFamily: MONOSPACE_FONT,
+      fontSize: scaleFont(13),
+      lineHeight: scaleFont(20),
+    },
+    valueText: {
+      flex: 1,
+      flexShrink: 1,
     },
     zoneIndicatorColor: {
-      color: colors.bracketColor,
+      color: color.bracketColor,
+      fontFamily: MONOSPACE_FONT,
+      fontSize: scaleFont(13),
+      fontWeight: '700',
     },
     scaleStyle: {
-      paddingHorizontal: horizontalScale(8),
-      marginRight: horizontalScale(tabHeightVertical),
-      backgroundColor: colors.errorBackground,
+      minWidth: TOUCH_TARGET_MIN * 0.65,
+      minHeight: TOUCH_TARGET_MIN * 0.65,
+      paddingHorizontal: horizontalScale(10),
+      marginRight: horizontalScale(8),
+      backgroundColor: color.button,
+      borderRadius: moderateScale(6),
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });

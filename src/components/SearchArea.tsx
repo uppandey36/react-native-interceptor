@@ -12,6 +12,9 @@ import {
   horizontalScale,
   moderateScale,
   verticalScale,
+  scaleFont,
+  contentHorizontalPadding,
+  TOUCH_TARGET_MIN,
 } from '../library/commons';
 import { ColorMap } from '../types/theme';
 
@@ -25,7 +28,7 @@ function Search(props: Search) {
   const styles = Styles(colors);
 
   const [searchText, setSearchText] = useState('');
-  const onChnageText = (text: string) => {
+  const onChangeText = (text: string) => {
     setSearchText(text);
     searchFunction(text?.toLowerCase() || '');
   };
@@ -35,60 +38,73 @@ function Search(props: Search) {
       <TextInput
         value={searchText}
         placeholder={placeholder}
-        placeholderTextColor={colors.secondaryText}
-        onChangeText={onChnageText}
+        placeholderTextColor={colors.textMuted}
+        onChangeText={onChangeText}
         style={styles.textInput}
+        accessibilityLabel={placeholder}
+        accessibilityRole="search"
+        returnKeyType="search"
+        autoCapitalize="none"
+        autoCorrect={false}
+        clearButtonMode="never"
       />
       <Pressable
         onPress={
           searchText
             ? () => {
-                onChnageText('');
+                onChangeText('');
               }
-            : null
+            : undefined
         }
+        accessibilityRole="button"
+        accessibilityLabel={searchText ? 'Clear search' : 'Search'}
+        hitSlop={8}
+        style={styles.clearButton}
       >
-        <Text
-          style={[
-            styles.searchIcon,
-            searchText
-              ? {
-                  fontSize: moderateScale(20),
-                  marginTop: verticalScale(Platform.OS === 'android' ? 8 : 14),
-                }
-              : {},
-          ]}
-        >
-          {searchText ? '\u2715' : '⌕'}
+        <Text style={[styles.searchIcon, searchText && styles.clearIcon]}>
+          {searchText ? '\u2715' : '\u2315'}
         </Text>
       </Pressable>
     </View>
   );
 }
 
-const Styles = (colors: ColorMap) =>
+const Styles = (color: ColorMap) =>
   StyleSheet.create({
     inputArea: {
       borderWidth: 1,
-      height: verticalScale(50),
-      backgroundColor: colors.secondary,
-      marginHorizontal: horizontalScale(10),
-      marginBottom: verticalScale(16),
-      borderRadius: moderateScale(25),
+      borderColor: color.border,
+      minHeight: Math.max(verticalScale(48), TOUCH_TARGET_MIN),
+      backgroundColor: color.surface,
+      marginHorizontal: contentHorizontalPadding,
+      marginBottom: verticalScale(12),
+      borderRadius: moderateScale(12),
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingHorizontal: horizontalScale(12),
+      alignItems: 'center',
+      paddingHorizontal: horizontalScale(14),
+    },
+    clearButton: {
+      minWidth: TOUCH_TARGET_MIN,
+      minHeight: TOUCH_TARGET_MIN,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     searchIcon: {
-      fontSize: moderateScale(30),
-      color: colors.primary,
-      fontFamily: 'monospace',
-      marginTop: verticalScale(Platform.OS === 'ios' ? 6 : 0),
+      fontSize: scaleFont(22),
+      color: color.textSecondary,
+      fontFamily: Platform.select({ ios: 'System', default: undefined }),
+    },
+    clearIcon: {
+      fontSize: scaleFont(18),
+      color: color.textPrimary,
     },
     textInput: {
-      width: '85%',
-      color: colors.primary,
-      fontSize: moderateScale(14),
+      flex: 1,
+      color: color.textPrimary,
+      fontSize: scaleFont(16),
+      lineHeight: scaleFont(22),
+      paddingVertical: verticalScale(Platform.OS === 'ios' ? 12 : 8),
+      marginRight: horizontalScale(8),
     },
   });
 

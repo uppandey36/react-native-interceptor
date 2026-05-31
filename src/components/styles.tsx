@@ -3,12 +3,17 @@ import {
   horizontalScale,
   verticalScale,
   moderateScale,
+  scaleFont,
+  contentHorizontalPadding,
+  TOUCH_TARGET_MIN,
+  isTablet,
 } from '../library/commons';
 import { ColorMap } from '../types/theme';
 
 export interface Styles {
   itemCenter: ViewStyle;
   flexRow: ViewStyle;
+  flex1: ViewStyle;
   fontBold: TextStyle;
   flexWrap: ViewStyle;
   parentContainer: ViewStyle;
@@ -18,20 +23,27 @@ export interface Styles {
   pressableText: TextStyle;
   individualContainer: ViewStyle;
   individualInfoContainer: ViewStyle;
+  rowContent: ViewStyle;
   urlText: TextStyle;
   methodInfo: ViewStyle;
   listContainer: ViewStyle;
   methodText: TextStyle;
   carretIcon: TextStyle;
   expandContainer: ViewStyle;
+  expandContainerError: ViewStyle;
   expandedInfoText: TextStyle;
-  keyValueContainer: ViewStyle;
+  expandedLabel: TextStyle;
+  expandedValue: TextStyle;
+  keyValueRow: ViewStyle;
   infoButton: ViewStyle;
   infoButtonText: TextStyle;
   hyperLink: ViewStyle;
   hyperText: TextStyle;
   paddingBottom8: ViewStyle;
   marginHor4: TextStyle;
+  emptyList: ViewStyle;
+  emptyListText: TextStyle;
+  typeAccentBar: ViewStyle;
 }
 
 export const Styles = (colors: ColorMap) =>
@@ -43,8 +55,11 @@ export const Styles = (colors: ColorMap) =>
     flexRow: {
       flexDirection: 'row',
     },
+    flex1: {
+      flex: 1,
+    },
     fontBold: {
-      fontWeight: 'bold',
+      fontWeight: '600',
     },
     flexWrap: {
       flexWrap: 'wrap',
@@ -54,101 +69,165 @@ export const Styles = (colors: ColorMap) =>
       backgroundColor: colors.primary,
     },
     headerContainer: {
-      paddingHorizontal: horizontalScale(10),
+      paddingHorizontal: contentHorizontalPadding,
       justifyContent: 'space-between',
-      height: verticalScale(36),
+      minHeight: verticalScale(48),
       alignItems: 'center',
-      marginVertical: verticalScale(16),
+      marginTop: verticalScale(Platform.OS === 'ios' ? 8 : 12),
+      marginBottom: verticalScale(12),
     },
     title: {
-      color: colors.secondary,
-      fontSize: moderateScale(24),
+      color: colors.textPrimary,
+      fontSize: scaleFont(isTablet ? 26 : 22),
+      letterSpacing: 0.2,
     },
     headerPressable: {
-      width: horizontalScale(36),
-      height: horizontalScale(36),
-      backgroundColor: colors.secondary,
-      borderRadius: moderateScale(18),
-      paddingTop: verticalScale(Platform.OS === 'ios' ? 6 : 0),
+      minWidth: TOUCH_TARGET_MIN,
+      minHeight: TOUCH_TARGET_MIN,
+      backgroundColor: colors.surface,
+      borderRadius: moderateScale(22),
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingTop: verticalScale(Platform.OS === 'ios' ? 2 : 0),
     },
     pressableText: {
-      color: colors.commonText,
-      fontSize: moderateScale(20),
-      marginBottom: verticalScale(4),
-      marginRight: horizontalScale(3),
+      color: colors.textPrimary,
+      fontSize: scaleFont(18),
     },
     individualContainer: {
-      marginBottom: verticalScale(16),
+      marginBottom: verticalScale(12),
     },
     individualInfoContainer: {
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: verticalScale(12),
-      paddingHorizontal: horizontalScale(12),
+      paddingVertical: verticalScale(14),
+      paddingHorizontal: horizontalScale(14),
       backgroundColor: colors.secondary,
-      borderRadius: moderateScale(36),
+      borderRadius: moderateScale(16),
+      borderWidth: 1,
+      borderColor: colors.border,
+      minHeight: TOUCH_TARGET_MIN + verticalScale(8),
+    },
+    rowContent: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginRight: horizontalScale(8),
     },
     urlText: {
       color: colors.commonText,
-      fontSize: moderateScale(12),
-      width: horizontalScale(220),
+      fontSize: scaleFont(14),
+      lineHeight: scaleFont(20),
+      flex: 1,
     },
     methodInfo: {
-      backgroundColor: colors.primary,
-      width: horizontalScale(80),
-      height: verticalScale(42),
-      borderRadius: moderateScale(24),
-      marginRight: horizontalScale(4),
+      backgroundColor: colors.methodBadgeBg,
+      minWidth: horizontalScale(isTablet ? 72 : 64),
+      paddingHorizontal: horizontalScale(8),
+      minHeight: verticalScale(36),
+      borderRadius: moderateScale(10),
+      marginRight: horizontalScale(10),
     },
     listContainer: {
-      paddingHorizontal: horizontalScale(10),
-      paddingBottom: verticalScale(16),
+      paddingHorizontal: contentHorizontalPadding,
+      paddingBottom: verticalScale(24),
+      flexGrow: 1,
     },
     methodText: {
-      fontSize: moderateScale(18),
+      fontSize: scaleFont(13),
+      fontWeight: '700',
+      letterSpacing: 0.6,
     },
     carretIcon: {
-      color: colors.primary,
-      fontSize: moderateScale(20),
+      color: colors.commonText,
+      fontSize: scaleFont(14),
+      opacity: 0.85,
+      minWidth: horizontalScale(24),
+      textAlign: 'center',
     },
     expandContainer: {
       marginTop: verticalScale(8),
-      paddingTop: verticalScale(12),
-      paddingHorizontal: horizontalScale(12),
+      paddingTop: verticalScale(14),
+      paddingBottom: verticalScale(14),
+      paddingHorizontal: horizontalScale(14),
       backgroundColor: colors.detailsBackground,
-      borderRadius: moderateScale(8),
+      borderRadius: moderateScale(12),
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    expandContainerError: {
+      backgroundColor: colors.errorBackground,
+      borderColor: colors.errorText,
     },
     expandedInfoText: {
-      fontSize: moderateScale(14),
+      fontSize: scaleFont(14),
       color: colors.commonText,
+      lineHeight: scaleFont(22),
     },
-    keyValueContainer: {
-      width: '92%',
+    expandedLabel: {
+      fontSize: scaleFont(13),
+      color: colors.secondaryText,
+      fontWeight: '600',
+      minWidth: horizontalScale(56),
+    },
+    expandedValue: {
+      flex: 1,
+      fontSize: scaleFont(14),
+      color: colors.commonText,
+      lineHeight: scaleFont(22),
+    },
+    keyValueRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      marginBottom: verticalScale(10),
+      width: '100%',
     },
     infoButton: {
-      paddingHorizontal: horizontalScale(16),
-      paddingVertical: verticalScale(8),
+      paddingHorizontal: horizontalScale(14),
+      paddingVertical: verticalScale(10),
       backgroundColor: colors.button,
-      marginRight: horizontalScale(12),
-      borderRadius: moderateScale(20),
-      marginTop: verticalScale(12),
+      marginRight: horizontalScale(8),
+      marginBottom: verticalScale(8),
+      borderRadius: moderateScale(10),
+      minHeight: TOUCH_TARGET_MIN,
+      justifyContent: 'center',
     },
     infoButtonText: {
-      color: colors.commonText,
-      fontSize: moderateScale(14),
-      fontWeight: 'bold',
+      color: colors.buttonText,
+      fontSize: scaleFont(13),
+      fontWeight: '600',
     },
     hyperLink: {
       paddingHorizontal: horizontalScale(12),
       paddingVertical: verticalScale(12),
+      minHeight: TOUCH_TARGET_MIN,
+      justifyContent: 'center',
     },
     hyperText: {
-      fontSize: moderateScale(16),
-      fontWeight: 'bold',
+      fontSize: scaleFont(15),
+      fontWeight: '600',
       color: colors.hyperLink,
+      textDecorationLine: 'underline',
     },
     paddingBottom8: {
       paddingBottom: verticalScale(12),
     },
-    marginHor4: { marginLeft: horizontalScale(4) },
+    marginHor4: {
+      marginLeft: horizontalScale(4),
+    },
+    emptyList: {
+      paddingVertical: verticalScale(48),
+      alignItems: 'center',
+    },
+    emptyListText: {
+      color: colors.textMuted,
+      fontSize: scaleFont(15),
+      lineHeight: scaleFont(22),
+    },
+    typeAccentBar: {
+      width: horizontalScale(4),
+      borderRadius: moderateScale(2),
+      marginRight: horizontalScale(10),
+      alignSelf: 'stretch',
+    },
   });
