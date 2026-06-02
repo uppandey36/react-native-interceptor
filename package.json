@@ -1,6 +1,6 @@
 {
   "name": "react-native-interceptor",
-  "version": "3.0.0",
+  "version": "1.0.1",
   "description": "React native network calls and logs list to reduce debugging and blocking time",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
