@@ -1,15 +1,50 @@
-import { Dimensions } from 'react-native';
+import { Dimensions, PixelRatio, Platform } from 'react-native';
 import { AvailableMethods } from '../types/network';
 
-export const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const guidelineBaseWidth = 375;
 const guidelineBaseHeight = 812;
 
-const horizontalScale = (size: number) => (width / guidelineBaseWidth) * size;
-const verticalScale = (size: number) => (height / guidelineBaseHeight) * size;
-const moderateScale = (size: number, factor = 0.5) =>
+const clamp = (min: number, value: number, max: number) =>
+  Math.min(Math.max(value, min), max);
+
+const horizontalScale = (size: number) => {
+  const scaled = (width / guidelineBaseWidth) * size;
+  return clamp(size * 0.88, scaled, size * 1.25);
+};
+
+const verticalScale = (size: number) => {
+  const scaled = (height / guidelineBaseHeight) * size;
+  return clamp(size * 0.88, scaled, size * 1.25);
+};
+
+const moderateScale = (size: number, factor = 0.4) =>
   size + (horizontalScale(size) - size) * factor;
+
+const scaleFont = (size: number) => {
+  const scaled = moderateScale(size, 0.35);
+  const fontScale = PixelRatio.getFontScale();
+  return clamp(size * 0.95, scaled * Math.min(fontScale, 1.35), size * 1.45);
+};
+
+const isTablet = width >= 768;
+
+const contentHorizontalPadding = horizontalScale(isTablet ? 24 : 16);
+
+const contentMaxWidth = isTablet ? Math.min(width * 0.82, 720) : width;
+
+const TOUCH_TARGET_MIN = Platform.select({
+  ios: 44,
+  android: 48,
+  default: 44,
+})!;
+
+const MONOSPACE_FONT = Platform.select({
+  ios: 'Menlo',
+  android: 'monospace',
+  default: 'monospace',
+});
 
 function generateCurlCommand(options: {
   method: AvailableMethods;
@@ -19,17 +54,14 @@ function generateCurlCommand(options: {
 }): string {
   const { method, url, headers, body } = options;
 
-  // Start building the cURL command
   let curlCommand = `curl -X ${method.toUpperCase()} "${url}"`;
 
-  // Add headers if they exist
   if (headers) {
     for (const [key, value] of Object.entries(headers)) {
       curlCommand += ` -H "${key}: ${value}"`;
     }
   }
 
-  // Add body if it exists
   if (body) {
     const bodyString = typeof body === 'string' ? body : JSON.stringify(body);
     curlCommand += ` -d '${bodyString}'`;
@@ -38,4 +70,17 @@ function generateCurlCommand(options: {
   return curlCommand;
 }
 
-export { horizontalScale, verticalScale, moderateScale, generateCurlCommand };
+export {
+  width,
+  height,
+  horizontalScale,
+  verticalScale,
+  moderateScale,
+  scaleFont,
+  isTablet,
+  contentHorizontalPadding,
+  contentMaxWidth,
+  TOUCH_TARGET_MIN,
+  MONOSPACE_FONT,
+  generateCurlCommand,
+};

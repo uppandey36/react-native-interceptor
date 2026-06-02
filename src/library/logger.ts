@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-console */
 import { IndividualLogs, LoggerTypes, ConfigureLogger } from '../types/logger';
 
 class Logger {
@@ -107,7 +105,8 @@ class Logger {
   }
 
   getLogsList(inverted = false) {
-    return inverted ? this.logsList.reverse() : this.logsList;
+    const list = [...this.logsList];
+    return inverted ? list.reverse() : list;
   }
 }
 

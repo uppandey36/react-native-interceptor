@@ -1,12 +1,4 @@
-enum Methods {
-  GET = 'GET',
-  POST = 'POST',
-  PATCH = 'PATCH',
-  PUT = 'PUT',
-  DELETE = 'DELETE',
-}
-
-export type AvailableMethods = keyof typeof Methods;
+export type AvailableMethods = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 export interface ConfigureNetwork {
   networksLimit?: number;
@@ -29,7 +21,13 @@ export interface INetworkApis {
   requestBody: Record<string, unknown>;
   requestHeaders: Record<string, string>;
   params: Record<string, string>;
-  response: Record<string, unknown>;
+  response:
+    | Record<string, unknown>
+    | string
+    | unknown[]
+    | number
+    | boolean
+    | null;
   responseHeaders: Record<string, string>;
   status?: number;
   stopTime?: number;
@@ -39,6 +37,13 @@ export interface INetworkApis {
 
 export interface IIndividualApi extends INetworkApis {
   onInfoButtonClick: (
-    data: Record<string, string> | Record<string, unknown>
+    data:
+      | Record<string, string>
+      | Record<string, unknown>
+      | string
+      | boolean
+      | number
+      | unknown[]
+      | null
   ) => void;
 }
