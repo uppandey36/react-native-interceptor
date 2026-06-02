@@ -15,14 +15,12 @@ If this project has helped you out, please support us with a star 🌟.
 
 ## Screenshots
 
-#### Dark Theme
 <p float="left" align="center">
   <img src="https://github.com/uppandey36/libraries-reference-images/blob/main/react-native-interceptor/Image1.png" width="300" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://github.com/uppandey36/libraries-reference-images/blob/main/react-native-interceptor/image2.png" width="300" /> 
 </p>
 
-#### Light Theme
 <p float="left" align="center">
   <img src="https://github.com/uppandey36/libraries-reference-images/blob/main/react-native-interceptor/Image3.png" width="300" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
