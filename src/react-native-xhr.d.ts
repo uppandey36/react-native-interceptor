@@ -26,6 +26,10 @@ declare module 'react-native/Libraries/Network/XMLHttpRequest' {
     _trackingName?: string | number;
     _skipInterceptor?: boolean;
     _timedOut?: boolean;
+    _hasError?: boolean;
+    /** Raw body from native networking (string for text/json; object descriptor for blob). */
+    _response?: string | object;
+    _responseType?: string;
 
     open(method: string, url: string, async?: boolean): void;
     send(data?: unknown): void;

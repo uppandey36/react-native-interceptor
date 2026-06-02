@@ -26,6 +26,22 @@ if (Platform.OS === 'android') {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+function sectionHasData(data: unknown): boolean {
+  if (data == null) {
+    return false;
+  }
+  if (typeof data === 'string') {
+    return data.length > 0;
+  }
+  if (Array.isArray(data)) {
+    return data.length > 0;
+  }
+  if (typeof data === 'object') {
+    return Object.keys(data).length > 0;
+  }
+  return true;
+}
+
 export interface NetworkApis {
   onBackPress: () => void;
   displayOrder?: 'FCFS' | 'LCFS';
@@ -76,27 +92,27 @@ export function IndividualApi(props: IIndividualApi) {
     {
       title: 'Request',
       data: requestBody,
-      disable: Object.keys(requestBody || {}).length === 0,
+      disable: !sectionHasData(requestBody),
     },
     {
       title: 'Request Header',
       data: requestHeaders,
-      disable: Object.keys(requestHeaders || {}).length === 0,
+      disable: !sectionHasData(requestHeaders),
     },
     {
       title: 'Params',
       data: params,
-      disable: Object.keys(params || {}).length === 0,
+      disable: !sectionHasData(params),
     },
     {
       title: 'Response',
       data: response,
-      disable: Object.keys(response || {}).length === 0,
+      disable: !sectionHasData(response),
     },
     {
       title: 'Response Header',
       data: responseHeaders,
-      disable: Object.keys(responseHeaders || {}).length === 0,
+      disable: !sectionHasData(responseHeaders),
     },
   ];
 
@@ -218,7 +234,13 @@ export function NetworkApis(props: NetworkApis) {
 
   const [modalData, setModalData] = useState<{
     title: string;
-    info: Record<string, unknown>;
+    info:
+      | Record<string, unknown>
+      | string
+      | boolean
+      | number
+      | unknown[]
+      | null;
   }>({ title: '', info: {} });
   const [showModal, setShowModal] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
@@ -227,10 +249,21 @@ export function NetworkApis(props: NetworkApis) {
 
   const listData = areLogsClear ? [] : (searchedApis ?? apisList);
 
-  const onInfoButtonClick = useCallback((data: Record<string, unknown>) => {
-    setModalData({ title: 'Copy', info: data });
-    setShowModal(true);
-  }, []);
+  const onInfoButtonClick = useCallback(
+    (
+      data:
+        | Record<string, unknown>
+        | string
+        | boolean
+        | number
+        | unknown[]
+        | null
+    ) => {
+      setModalData({ title: 'Copy', info: data });
+      setShowModal(true);
+    },
+    []
+  );
 
   const onCopyText = useCallback(() => {
     Share.share({ message: JSON.stringify(modalData?.info || '') });

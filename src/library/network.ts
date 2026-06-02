@@ -25,6 +25,122 @@ function asApiInfo(xhr: XMLHttpRequest): IndividualApiInfo {
   return xhr as unknown as IndividualApiInfo;
 }
 
+function parseRequestBody(data: unknown): unknown {
+  if (data == null) {
+    return {};
+  }
+  if (typeof data !== 'string') {
+    return data;
+  }
+  const trimmed = data.trim();
+  if (!trimmed) {
+    return {};
+  }
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    return data;
+  }
+}
+
+function parseResponseBody(response: unknown): unknown {
+  if (response == null) {
+    return null;
+  }
+  if (typeof response === 'object') {
+    return response;
+  }
+  if (typeof response !== 'string') {
+    return response;
+  }
+  const trimmed = response.trim();
+  if (!trimmed) {
+    return '';
+  }
+  const first = trimmed[0];
+  if (first === '{' || first === '[') {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return response;
+    }
+  }
+  return response;
+}
+
+type XhrWithInternals = XMLHttpRequest & {
+  _response?: string | object;
+  _responseType?: string;
+  _hasError?: boolean;
+};
+
+/**
+ * fetch() in React Native sets responseType to "blob", so xhr.response is a Blob.
+ * The actual text/JSON payload is kept on the internal _response string until then.
+ */
+function getResponseBodyFromXhr(xhr: XhrWithInternals): unknown {
+  if (xhr._hasError) {
+    return null;
+  }
+
+  const responseType = xhr.responseType || xhr._responseType || '';
+  const raw = xhr._response;
+
+  if (responseType === 'json') {
+    return xhr.response;
+  }
+
+  if (responseType === 'arraybuffer') {
+    return typeof raw === 'string' && raw.length > 0
+      ? '[ArrayBuffer]'
+      : xhr.response;
+  }
+
+  if (responseType === 'blob') {
+    if (typeof raw === 'string') {
+      return parseResponseBody(raw);
+    }
+    if (typeof raw === 'object' && raw) {
+      return { __type: 'Blob', note: 'Binary response (not decoded)' };
+    }
+    const blob = xhr.response;
+    if (blob && typeof blob === 'object') {
+      return { __type: 'Blob', note: 'Binary response (not decoded)' };
+    }
+    return '';
+  }
+
+  if (responseType === '' || responseType === 'text') {
+    if (typeof raw === 'string') {
+      return parseResponseBody(raw);
+    }
+    return parseResponseBody(xhr.response);
+  }
+
+  if (typeof raw === 'string') {
+    return parseResponseBody(raw);
+  }
+
+  const resolved = xhr.response;
+  if (resolved == null) {
+    return null;
+  }
+  if (typeof resolved === 'string' || typeof resolved === 'object') {
+    return parseResponseBody(resolved);
+  }
+  return resolved;
+}
+
+function isCapturableBody(body: unknown): boolean {
+  return (
+    body !== undefined &&
+    (typeof body === 'string' ||
+      typeof body === 'object' ||
+      typeof body === 'number' ||
+      typeof body === 'boolean')
+  );
+}
+
 function enableInterception() {
   if (isInterceptorEnabled) {
     return;
@@ -47,7 +163,7 @@ function enableInterception() {
             responseCallback(
               this.status,
               !!this._timedOut,
-              this.response,
+              getResponseBodyFromXhr(this as XhrWithInternals),
               this.responseURL || this._url || '',
               this.responseType,
               asApiInfo(this)
@@ -90,7 +206,7 @@ function Network() {
     } catch {}
 
     networkList[interceptorCounter] = {
-      requestBody: typeof data === 'string' ? JSON.parse(data) : data,
+      requestBody: parseRequestBody(data) as INetworkApis['requestBody'],
       xhr,
       startTime: Date.now(),
       url: xhr._url || '',
@@ -140,7 +256,7 @@ function Network() {
     }) as INetworkApis;
 
     const useRealResponse =
-      (typeof response === 'string' || typeof response === 'object') &&
+      isCapturableBody(response) &&
       !ignoreContentTypes?.find((content) => content.test(contentType));
 
     networkList[trackingName] = {
@@ -150,7 +266,9 @@ function Network() {
       requestBody: cachedRequest?.requestBody || {},
       requestHeaders: xhr._headers || null,
       params,
-      response: useRealResponse ? JSON?.parse(response) || {} : '--Skipper--',
+      response: useRealResponse
+        ? (response as INetworkApis['response'])
+        : '--Skipper--',
       responseHeaders: xhr.responseHeaders || null,
       stopTime: Date.now(),
       status,

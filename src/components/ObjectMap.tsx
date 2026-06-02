@@ -53,7 +53,14 @@ export default function ObjectMap(props: {
   tabCount?: number;
   parentKey?: string;
   extended?: boolean;
-  obj: string | boolean | number | Record<string, unknown> | unknown[];
+  obj:
+    | string
+    | boolean
+    | number
+    | null
+    | undefined
+    | Record<string, unknown>
+    | unknown[];
 }) {
   const { obj, tabCount = 0, parentKey = '', extended = true } = props;
   const styles = Styles(colors);
@@ -66,14 +73,15 @@ export default function ObjectMap(props: {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, []);
 
-  if (['string', 'boolean', 'number'].includes(typeof obj))
+  if (obj == null || typeof obj !== 'object') {
     return (
       <View style={[styles.infoMargin, { paddingLeft: indent }]}>
         <Text selectable style={[styles.textColor, styles.primitiveText]}>
-          {obj.toString()}
+          {String(obj)}
         </Text>
       </View>
     );
+  }
 
   return isExpanded ? (
     <View style={{ paddingLeft: indent }}>
